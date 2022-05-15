@@ -1,0 +1,177 @@
+# Project-02
+Pong Game
+
+final color PURPLE = color(188,112,255);
+final color GREEN = color(99,255,105);
+final color ORANGE = color(255,162,99);
+
+float xCoord, yCoord;
+int directionHorizontal;
+
+final int BALL_RADIUS = 100;
+final int BALL_THICKNESS = 5;
+final int GO_RIGHT = +1;
+final int GO_LEFT = -1;
+
+
+final int PADDLE_WIDTH = 25;
+final int PADDLE_HEIGHT = 100;
+final int PADDLE_MOVE = PADDLE_HEIGHT/4;
+
+boolean gameOver;
+
+int verticalVelocity;
+
+int leftBoundary, rightBoundary; 
+int numStopsHorizontal, numStopsHorizontalMinusOne, currentStopHorizontal;
+
+int Paddle_L_yCoord;
+int Paddle_R_yCoord;
+
+void setup() {
+  size(600, 600);
+  background(255);
+  
+  Paddle_L_yCoord = (height/2)-(PADDLE_HEIGHT/2);
+  Paddle_R_yCoord = (height/2)-(PADDLE_HEIGHT/2);
+
+  leftBoundary = 0 + BALL_RADIUS + BALL_THICKNESS/2 + PADDLE_WIDTH; 
+  rightBoundary = width-1 - BALL_RADIUS - BALL_THICKNESS/2 - PADDLE_WIDTH; 
+
+  numStopsHorizontal = 10;
+  numStopsHorizontalMinusOne = numStopsHorizontal - 1;
+  currentStopHorizontal = 0;
+  directionHorizontal = GO_RIGHT;
+
+  strokeWeight(BALL_THICKNESS);
+  yCoord = height/2; //this makes the ball start in the middle of the y axis
+
+  verticalVelocity = -25;
+
+  frameRate(3);
+  
+  gameOver = false;
+}
+
+void draw() {
+  drawHelper();
+  moveBall();
+}
+
+void drawHelper() {
+  background(255);
+  drawPaddle_L();
+  drawPaddle_R();
+  drawBall();
+}
+
+
+void drawBall() {
+  pushStyle();
+  
+  fill(PURPLE); //makes the ball green
+  ellipseMode(RADIUS);
+
+  float amountAcross = (float)currentStopHorizontal/numStopsHorizontalMinusOne;
+  xCoord = lerp(leftBoundary, rightBoundary, amountAcross);
+  ellipse(xCoord, yCoord, BALL_RADIUS, BALL_RADIUS);
+  
+    popStyle();
+}
+
+void moveBall() {
+  if (hitsRightSide()) {
+    if ((yCoord >= Paddle_R_yCoord - PADDLE_MOVE) && (yCoord <= Paddle_R_yCoord + PADDLE_HEIGHT + PADDLE_MOVE))
+      directionHorizontal = GO_LEFT;
+    else {
+      gameOver = true;
+    }
+  }
+  if (hitsLeftSide()) {
+    if ((yCoord >= Paddle_L_yCoord - PADDLE_MOVE) && (yCoord <= Paddle_L_yCoord + PADDLE_HEIGHT + PADDLE_MOVE))
+      directionHorizontal = GO_RIGHT;
+    else {
+      gameOver = true;
+    }
+  }
+  currentStopHorizontal += directionHorizontal;
+  if ( hitsTop() || hitsBottom() ) {
+    verticalVelocity*=-1;
+  }
+  yCoord -= verticalVelocity; //Think about how y being bigger means it is lower visually.
+}
+
+
+boolean hitsLeftSide() {
+  return currentStopHorizontal == 0;
+}
+
+boolean hitsRightSide() {
+  return currentStopHorizontal == numStopsHorizontalMinusOne;
+}
+
+
+boolean hitsTop() {
+  return yCoord <= 0 + BALL_RADIUS + BALL_THICKNESS/2;
+}
+
+
+boolean hitsBottom() {
+  return yCoord > height-1 - BALL_RADIUS - BALL_THICKNESS/2;
+}
+
+
+void drawPaddle_L() {
+  pushStyle();
+  
+  fill(color(GREEN));
+  rectMode(CORNER);
+  strokeWeight(5);
+  rect(0, Paddle_L_yCoord, PADDLE_WIDTH, PADDLE_HEIGHT);
+  
+  popStyle();
+}
+  
+void drawPaddle_R() {
+  pushStyle();
+  
+  fill(color(ORANGE));
+  rectMode(CORNER);
+  strokeWeight(5);
+  rect(width-PADDLE_WIDTH, Paddle_R_yCoord, PADDLE_WIDTH, PADDLE_HEIGHT);
+
+  popStyle();
+}
+
+
+void keyPressed(KeyEvent e) {
+  if (e.getKey() == 'q') { // LEFT UP
+     if (Paddle_L_yCoord >= PADDLE_MOVE) {
+        Paddle_L_yCoord -= PADDLE_MOVE; 
+    }
+  } else if (e.getKey() == 'a') { // LEFT DOWN
+      if (Paddle_L_yCoord <= height-PADDLE_HEIGHT-(PADDLE_MOVE*2)) {
+      Paddle_L_yCoord += PADDLE_MOVE;
+    }
+  } else if (e.getKey() == 'o') { // RIGHT UP
+     if (Paddle_R_yCoord >= PADDLE_MOVE) {
+        Paddle_R_yCoord -= PADDLE_MOVE; 
+    }
+  } else if (e.getKey() == 'l') { // RIGHT DOWN
+      if (Paddle_R_yCoord <= height-PADDLE_HEIGHT-(PADDLE_MOVE*2)) {
+      Paddle_R_yCoord += PADDLE_MOVE;
+    }
+  } else if (e.getKey() == 'r') { //RESET
+      setup();
+      loop();
+    }
+  if (!gameOver) {
+    drawHelper();
+  } else {
+    textSize(80);
+    textAlign(CENTER);
+    fill(0, 408, 612, 816);
+    text("GAME OVER", 300, 300);
+    noLoop();
+  }
+}
